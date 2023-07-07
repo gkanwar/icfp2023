@@ -79,10 +79,10 @@ def submit(args):
 
 def update_username(args):
     username = args.username
-    r = s.post(f'{HOST}/username/update_username', json={
+    r = s.post(f'{HOST}/user/update_username', json={
         'username': username
     })
-    expect_ok(r, '/username/update_username')
+    expect_ok(r, '/user/update_username')
     if 'Success' not in r.json():
         raise RuntimeError('Username update failed')
     print('Done.')

@@ -14,7 +14,7 @@ s.headers.update({'Authorization': f'Bearer {TOKEN}'})
 
 def expect_ok(r, msg):
     if not r.ok:
-        raise RuntimeError(f'Got error {r.status_code} at {msg}')
+        raise RuntimeError(f'Got error {r.status_code} at {msg}\n{r.content}')
 
 def sync_problems(args):
     r = s.get(f'{HOST}/problems')
@@ -74,6 +74,16 @@ def submit(args):
         print('.')
     print(f'Could not get score after {N_TRY} tries. Giving up.')
 
+def update_username(args):
+    username = args.username
+    r = s.post(f'{HOST}/username/update_username', json={
+        'username': username
+    })
+    expect_ok(r, '/username/update_username')
+    if 'Success' not in r.json():
+        raise RuntimeError('Username update failed')
+    print('Done.')
+
 def main():
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest='cmd', required=True)
@@ -81,12 +91,16 @@ def main():
     p_sync.add_argument('--force', action='store_true')
     p_submit = sub.add_parser('submit')
     p_submit.add_argument('i', type=int)
+    p_upd_username = sub.add_parser('upd_username')
+    p_upd_username.add_argument('--username', type=str, required=True)
 
     args = parser.parse_args()
     if args.cmd == 'sync':
         sync_problems(args)
     elif args.cmd == 'submit':
         submit(args)
+    elif args.cmd == 'upd_username':
+        update_username(args)
     else:
         raise RuntimeError(f'invalid cmd {cmd}')
 

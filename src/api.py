@@ -50,29 +50,32 @@ def get_score(sub_id):
     return j['Success']['submission']['score']
 
 def submit(args):
-    i = args.i
-    sol_fname = f'solutions/{i}.json'
-    print(f'Loading {sol_fname}')
-    if not os.path.exists(sol_fname):
-        raise RuntimeError(f'Error: solution does not exist {sol_fname}')
-    with open(sol_fname, 'r') as f:
-        sol = f.read()
-    print(f'Submitting {sol_fname}')
-    r = s.post(f'{HOST}/submission', json={
-        'problem_id': i,
-        'contents': sol
-    })
-    expect_ok(r, '/submission')
-    sub_id = r.json()
-    N_TRY = 10
-    for i in range(N_TRY):
-        time.sleep(1.0)
-        score = get_score(sub_id)
-        if score is not None:
-            print(score)
-            return
-        print('.')
-    print(f'Could not get score after {N_TRY} tries. Giving up.')
+    xs = args.i
+    for i in xs:
+        sol_fname = f'solutions/{i}.json'
+        print(f'Loading {sol_fname}')
+        if not os.path.exists(sol_fname):
+            print(f'Warning: solution does not exist {sol_fname}')
+            continue
+        with open(sol_fname, 'r') as f:
+            sol = f.read()
+        print(f'Submitting {sol_fname}')
+        r = s.post(f'{HOST}/submission', json={
+            'problem_id': i,
+            'contents': sol
+        })
+        expect_ok(r, '/submission')
+        sub_id = r.json()
+        print(f'Submitted with id {sub_id}')
+    # N_TRY = 10
+    # for i in range(N_TRY):
+    #     time.sleep(1.0)
+    #     score = get_score(sub_id)
+    #     if score is not None:
+    #         print(score)
+    #         return
+    #     print('.')
+    # print(f'Could not get score after {N_TRY} tries. Giving up.')
 
 def update_username(args):
     username = args.username
@@ -90,7 +93,7 @@ def main():
     p_sync = sub.add_parser('sync')
     p_sync.add_argument('--force', action='store_true')
     p_submit = sub.add_parser('submit')
-    p_submit.add_argument('i', type=int)
+    p_submit.add_argument('i', type=int, nargs='+')
     p_upd_username = sub.add_parser('upd_username')
     p_upd_username.add_argument('--username', type=str, required=True)
 

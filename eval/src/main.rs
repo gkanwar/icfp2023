@@ -31,7 +31,7 @@ struct Prob {
   attendees: Vec<Attendee>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(dead_code)]
 struct EvalResult {
   msg: String,
@@ -51,7 +51,7 @@ fn is_blocked(a: (f64, f64), b: (f64, f64), x: (f64, f64)) -> bool {
     return false;
   }
   let ax_proj = (ax.0 - ab_hat.0 * ab_dot_ax, ax.1 - ab_hat.1 * ab_dot_ax);
-  ax_proj.0.powi(2) + ax_proj.1.powi(2) <= RADSQ
+  ax_proj.0.powi(2) + ax_proj.1.powi(2) < RADSQ
   /* VERSION B
   let d = (b.0 - a.0, b.1 - a.1);
   let f = (a.0 - x.0, a.1 - x.1);
@@ -150,6 +150,6 @@ fn main() -> io::Result<()> {
   let prob: Prob = serde_json::from_reader(io::BufReader::new(prob_file))?;
   let sol: Sol = serde_json::from_reader(io::BufReader::new(sol_file))?;
   let res = evaluate(&prob, &sol);
-  println!("{:?}", res);
+  println!("{}", serde_json::to_string_pretty(&res)?);
   Ok(())
 }

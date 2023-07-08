@@ -1,12 +1,27 @@
 import argparse
 import json
 import numpy as np
+import queue
+import subprocess
+import tempfile
 import tqdm
-from target import *
+# from target import *
 from sa import *
+
+def evaluate(prob, sol):
+    f_prob = tempfile.NamedTemporaryFile(mode='w')
+    f_sol = tempfile.NamedTemporaryFile(mode='w')
+    json.dump(prob.json, f_prob)
+    json.dump(sol_to_json(sol), f_sol)
+    f_prob.flush()
+    f_sol.flush()
+    res = subprocess.check_output([
+        'eval/target/release/icfp2023-eval', f_prob.name, f_sol.name])
+    return json.loads(res)
 
 class Problem:
     def __init__(self, spec):
+        self.json = spec
         self.width = spec['room_width']
         self.height = spec['room_height']
         self.swidth = spec['stage_width']
@@ -66,7 +81,8 @@ def sa_fixed_coords(prob, coords):
     # values by instrument and coord
     value_grid = []
     # preferences for pos by instrument
-    pos_rank_grid = []
+    assign_prioq = queue.PriorityQueue()
+    # pos_rank_grid = []
     # coord index for each person
     cur_sol = np.zeros(len(prob.musicians), dtype=int)
     print('Building taste fields')
@@ -76,19 +92,30 @@ def sa_fixed_coords(prob, coords):
         for (x,y),ti in zip(prob.positions, tastes):
             d2 = (coords[:,0] - x)**2 + (coords[:,1] - y)**2
             values += ti/d2
-        inds = np.argsort(values)
-        pos_rank_grid.append(np.flip(inds))
+        for j,value in enumerate(values):
+            assign_prioq.put((-value, inst, j))
+        # inds = np.argsort(values)
+        # pos_rank_grid.append(np.flip(inds))
         value_grid.append(values)
     print('Assigning instrument locs by priority')
     used_coords = set([])
-    for i,inst in enumerate(tqdm.tqdm(prob.musicians)):
-        j = 0
-        while pos_rank_grid[inst][j] in used_coords:
-            j += 1
-            assert j < len(pos_rank_grid[inst])
-        cur_sol[i] = pos_rank_grid[inst][j]
-        used_coords.add(cur_sol[i])
-        pos_rank_grid[inst] = pos_rank_grid[inst][j+1:]
+    remaining = [[] for _ in range(len(prob.tastes))]
+    for i,inst in enumerate(prob.musicians):
+        remaining[inst].append(i)
+    while len(used_coords) < len(prob.musicians) and assign_prioq:
+        value, inst, j = assign_prioq.get()
+        if len(remaining[inst]) > 0 and j not in used_coords:
+            i = remaining[inst].pop()
+            cur_sol[i] = j
+            used_coords.add(j)
+    # for i,inst in enumerate(tqdm.tqdm(prob.musicians)):
+    #     j = 0
+    #     while pos_rank_grid[inst][j] in used_coords:
+    #         j += 1
+    #         assert j < len(pos_rank_grid[inst])
+    #     cur_sol[i] = pos_rank_grid[inst][j]
+    #     used_coords.add(cur_sol[i])
+    #     pos_rank_grid[inst] = pos_rank_grid[inst][j+1:]
     # TODO: SA improvements
     sol = coords[cur_sol]
     eval_res = evaluate(prob, sol)
@@ -116,7 +143,7 @@ def solve(args):
     with open(f'problems/{i}.json', 'r') as f:
         prob = Problem(json.load(f))
     res = strategy1(prob)
-    print(f'Got res {res}')
+    # print(f'Got res {res}')
     true_value = evaluate(prob, res['sol'])
     print(f'Found sol with value {true_value}')
     with open(f'solutions/{i}.json', 'w') as f:

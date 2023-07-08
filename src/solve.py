@@ -76,13 +76,10 @@ def make_hexagonal_packing(width, height, *, rot):
     else:
         raise RuntimeError(f'Unknown rot {rot}')
 
-def sa_fixed_coords(prob, coords):
+def init_sol_fixed_coords(prob, coords):
     coords = np.array(coords)
-    # values by instrument and coord
-    value_grid = []
     # preferences for pos by instrument
     assign_prioq = queue.PriorityQueue()
-    # pos_rank_grid = []
     # coord index for each person
     cur_sol = np.zeros(len(prob.musicians), dtype=int)
     print('Building taste fields')
@@ -94,9 +91,6 @@ def sa_fixed_coords(prob, coords):
             values += ti/d2
         for j,value in enumerate(values):
             assign_prioq.put((-value, inst, j))
-        # inds = np.argsort(values)
-        # pos_rank_grid.append(np.flip(inds))
-        value_grid.append(values)
     print('Assigning instrument locs by priority')
     used_coords = set([])
     remaining = [[] for _ in range(len(prob.tastes))]
@@ -108,16 +102,59 @@ def sa_fixed_coords(prob, coords):
             i = remaining[inst].pop()
             cur_sol[i] = j
             used_coords.add(j)
-    # for i,inst in enumerate(tqdm.tqdm(prob.musicians)):
-    #     j = 0
-    #     while pos_rank_grid[inst][j] in used_coords:
-    #         j += 1
-    #         assert j < len(pos_rank_grid[inst])
-    #     cur_sol[i] = pos_rank_grid[inst][j]
-    #     used_coords.add(cur_sol[i])
-    #     pos_rank_grid[inst] = pos_rank_grid[inst][j+1:]
-    # TODO: SA improvements
-    sol = coords[cur_sol]
+    return cur_sol
+
+def sa_fixed_coords(prob, coords, *, n_iter=100):
+    person_to_coord = init_sol_fixed_coords(prob, coords)
+    coord_to_person = -1*np.ones(len(coords), dtype=int)
+    for person,coord in enumerate(person_to_coord):
+        coord_to_person[coord] = person
+    sol = coords[person_to_coord]
+    # this all sort of sucks and is slow
+    '''
+    value = evaluate(prob, sol)['value']
+    print(f'init value = {value}')
+    NORM = 1000000.0
+    for i in tqdm.tqdm(range(n_iter)):
+        beta = 1000.0*i + 10.0*(n_iter-i)
+        k1 = np.random.randint(len(person_to_coord))
+        k2 = None
+        if np.random.random() < 0.50:
+            while k2 is None or k2 == k1:
+                k2 = np.random.randint(len(person_to_coord))
+        j1 = person_to_coord[k1]
+        if k2 is None:
+            j2 = np.random.randint(len(coords))
+        else:
+            j2 = person_to_coord[k2]
+        if coord_to_person[j2] < 0: # empty target
+            assert k2 is None
+            print(f'propose person {k1} move {j1} -> {j2}')
+            sol[k1] = coords[j2]
+        else:
+            print(f'propose swap {k1} {k2} coords {j1} <-> {j2}')
+            k2 = coord_to_person[j2]
+            sol[k1] = coords[j2]
+            sol[k2] = coords[j1]
+        value_p = evaluate(prob, sol)['value']
+        print(f'normalized dv = {(value_p - value)/NORM}')
+        if np.random.random() < np.exp(beta*(value_p - value)/NORM):
+            # accept
+            print('accept')
+            person_to_coord[k1] = j2
+            coord_to_person[j2] = k1
+            if k2 is not None:
+                person_to_coord[k2] = j1
+                coord_to_person[j1] = k2
+            value = value_p
+        else:
+            # reject
+            print('reject')
+            sol[k1] = coords[j1]
+            if k2 is not None:
+                sol[k2] = coords[j2]
+        print(f'value = {value}')
+    '''
     eval_res = evaluate(prob, sol)
     print(f'{eval_res=}')
     value = eval_res['value']

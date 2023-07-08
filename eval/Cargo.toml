@@ -3,6 +3,7 @@ name = "icfp2023-eval"
 version = "0.1.0"
 edition = "2021"
 authors = ["Gurtej Kanwar <gurtejkanwar@gmail.com>"]
+default-run = "icfp2023-eval"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -11,3 +12,11 @@ serde_json = "1.0"
 [lib]
 name = "icfp"
 path = "src/lib.rs"
+
+[[bin]]
+name = "icfp2023-eval"
+path = "src/eval/main.rs"
+
+[[bin]]
+name = "icfp2023-gui"
+path = "src/gui/main.rs"

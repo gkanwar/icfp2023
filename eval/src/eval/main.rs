@@ -8,6 +8,7 @@ fn main() -> io::Result<()> {
   let args: Vec<String> = env::args().collect();
   if args.len() < 3 {
     println!("Usage: {} prob.json sol.json", args[0]);
+    return Ok(());
   }
   let prob_fname = &args[1];
   let sol_fname = &args[2];

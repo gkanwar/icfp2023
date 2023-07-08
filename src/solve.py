@@ -123,11 +123,32 @@ def solve(args):
         json.dump(sol_to_json(res['sol']), f)
     print('Done.')
 
+def info(args):
+    i = args.i
+    with open(f'problems/{i}.json', 'r') as f:
+        prob = Problem(json.load(f))
+    print(f'== Problem {i} ==')
+    n = len(prob.musicians)
+    print(f'Musicians: {n}')
+    na = len(prob.positions)
+    print(f'Attendees: {na}')
+    area = prob.swidth * prob.sheight
+    print(f'Stage area: {area}')
+    musician_area = n * np.pi * 10.0**2
+    packable_area = area * np.pi / (2*np.sqrt(3))
+    print(f'Packing fraction: {musician_area / packable_area}')
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('i', type=int)
+    parser.add_argument('--cmd', choices=['solve', 'info'], default='solve')
     args = parser.parse_args()
-    solve(args)
+    if args.cmd == 'solve':
+        solve(args)
+    elif args.cmd == 'info':
+        info(args)
+    else:
+        raise RuntimeError(f'Invalid cmd {args.cmd}')
 
 if __name__ == '__main__':
     main()

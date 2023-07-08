@@ -42,6 +42,8 @@ struct EvalResult {
 fn is_blocked(a: (f64, f64), b: (f64, f64), x: (f64, f64)) -> bool {
   const RAD: f64 = 5.0;
   const RADSQ: f64 = RAD * RAD;
+  // VERSION A
+  /*
   let ax = (x.0 - a.0, x.1 - a.1);
   let ab = (b.0 - a.0, b.1 - a.1);
   let ab_norm = (ab.0.powi(2) + ab.1.powi(2)).sqrt();
@@ -52,21 +54,21 @@ fn is_blocked(a: (f64, f64), b: (f64, f64), x: (f64, f64)) -> bool {
   }
   let ax_proj = (ax.0 - ab_hat.0 * ab_dot_ax, ax.1 - ab_hat.1 * ab_dot_ax);
   ax_proj.0.powi(2) + ax_proj.1.powi(2) < RADSQ
-  /* VERSION B
+  */
+  // VERSION B
   let d = (b.0 - a.0, b.1 - a.1);
   let f = (a.0 - x.0, a.1 - x.1);
   let d2 = d.0.powi(2) + d.1.powi(2);
   let fd = 2.0 * f.0 * d.0 + 2.0 * f.1 * d.1;
   let f2_r2 = f.0.powi(2) + f.1.powi(2) - RADSQ;
   let disc = fd * fd - 4.0 * d2 * f2_r2;
-  if disc < 0.0 {
+  if disc <= 0.0 {
     return false;
   }
   let disc_rt = disc.sqrt();
   let t1 = (-fd - disc_rt) / (2.0 * d2);
   let t2 = (-fd + disc_rt) / (2.0 * d2);
-  t1 >= 0.0 && t1 <= 1.0 || t2 >= 0.0 && t2 <= 1.0
-  */
+  t1 > 0.0 && t1 < 1.0 || t2 > 0.0 && t2 < 1.0
 }
 
 fn evaluate(prob: &Prob, sol: &Sol) -> EvalResult {

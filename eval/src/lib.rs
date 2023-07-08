@@ -1,30 +1,45 @@
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Point {
-  x: f64,
-  y: f64,
+  pub x: f64,
+  pub y: f64,
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Sol {
-  placements: Vec<Point>,
+  pub placements: Vec<Point>,
+}
+impl Sol {
+  pub fn new(prob: &Prob) -> Self {
+    let mut placements: Vec<Point> = Vec::new();
+    let mut rng = rand::thread_rng();
+    for i in 0..prob.musicians.len() {
+      let u1: f64 = rng.gen();
+      let u2: f64 = rng.gen();
+      let x = prob.stage_bottom_left.0 + 10.0 + u1 * (prob.stage_width - 20.0);
+      let y = prob.stage_bottom_left.1 + 10.0 + u2 * (prob.stage_height - 20.0);
+      placements.push(Point { x, y });
+    }
+    Self { placements }
+  }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Attendee {
-  x: f64,
-  y: f64,
-  tastes: Vec<f64>,
+pub struct Attendee {
+  pub x: f64,
+  pub y: f64,
+  pub tastes: Vec<f64>,
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Prob {
-  room_width: f64,
-  room_height: f64,
-  stage_width: f64,
-  stage_height: f64,
-  stage_bottom_left: (f64, f64),
-  musicians: Vec<usize>,
-  attendees: Vec<Attendee>,
+  pub room_width: f64,
+  pub room_height: f64,
+  pub stage_width: f64,
+  pub stage_height: f64,
+  pub stage_bottom_left: (f64, f64),
+  pub musicians: Vec<usize>,
+  pub attendees: Vec<Attendee>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

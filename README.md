@@ -1,6 +1,6 @@
 ICFP Programming Contest 2023
 =============================
-Carrying the idkjava tradition of doing the ICFP challenges solo this year.
+Carrying on the idkjava tradition by participating in the ICFP contest, although unfortuantely solo this year!
 See [icfpcontest2023.github.io](http://icfpcontest2023.github.io) for contest details.
 
 This year's competition was about placing musicians on a stage to maximally satisfy a varied audience. We were given problem statements which described:
@@ -22,3 +22,7 @@ Here is a breakdown of the problem scores as of T-2 hrs on Saturday:
 ![Score breakdown at Saturday 12pm](figs/summary_sat_12pm.png)
 
 Of course, this misses the obstruction effects, which could be important in some cases. Since it seems hard to optimally solve this, even on the restricted grid, we need some heuristics / stochastic search. Implementing an efficient exact score evaluator (with obstruction) allowed experimentation here. Unfortunately a basic simulated annealing strategy with just swaps and assignments makes very little progress (1-5%) in most cases.
+
+Full round
+==========
+For the full round, I ended up being a bit busy and also got side-tracked with building a UI for manipulating solutions which didn't ultimately yield anything. In the end, only turned up the volume from 1 to 10 (trivially multiplying lightning round scores by 10x). Maybe with more manpower and time we'll make more progress next year!
